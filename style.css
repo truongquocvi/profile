@@ -89,6 +89,7 @@ section {
     transition: box-shadow 0.3s ease;
     min-width: 250px;
     min-height: 100px;
+    box-sizing: border-box;
 }
 
 /* Window Controls */
@@ -158,6 +159,8 @@ body.light-mode .win-btn:hover { background: rgba(0, 0, 0, 0.1); }
     overflow-x: auto;
     flex: 1;
     box-sizing: border-box;
+    min-height: 0;
+    min-width: 0;
 }
 
 /* Window States */
@@ -183,14 +186,16 @@ section.section-minimized .section-content {
 
 section.section-fullscreen {
     position: fixed !important;
-    top: 5vh !important;
-    left: 5vw !important;
-    width: 90vw !important;
-    height: 90vh !important;
+    top: 3vh !important;
+    left: 3vw !important;
+    width: 94vw !important;
+    height: 94vh !important;
     z-index: 1000 !important;
     transform: none !important;
-    margin: 0;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    margin: 0 !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--term-border) !important;
 }
 section.section-fullscreen .section-content {
     overflow-y: auto;
