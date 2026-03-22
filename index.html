@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Truong Quoc Vi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* Language Switch Classes */
+        .lang-vi-only { display: none; }
+        body.lang-vi .lang-en-only { display: none; }
+        body.lang-vi span.lang-vi-only, body.lang-vi b.lang-vi-only, body.lang-vi strong.lang-vi-only { display: inline; }
+        body.lang-vi div.lang-vi-only, body.lang-vi p.lang-vi-only { display: block; }
+        body.lang-vi li.lang-vi-only { display: list-item; }
+
+        :root {
+            --bg-color: #2e3436;
+            --term-bg: #000000;
+            --text-main: #eeeeec;
+            --accent-blue: #729fcf;
+            --accent-green: #8ae234;
+            --accent-orange: #fce94f;
+            --accent-cyan: #34e2e2;
+            --term-border: #555753;
+            --header-bg: rgba(0, 0, 0, 0.9);
+            --section-bg: rgba(0, 0, 0, 0.85);
+            --shadow-color: rgba(114, 159, 207, 0.15);
+            --section-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            --popover-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        body.light-mode {
+            --bg-color: #f0f2f5;
+            --term-bg: #ffffff;
+            --text-main: #2e3436;
+            --accent-blue: #204a87;
+            --accent-green: #4e9a06;
+            --accent-orange: #ce5c00;
+            --accent-cyan: #06989a;
+            --term-border: #babdb6;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --section-bg: rgba(255, 255, 255, 0.9);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --section-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --popover-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        body {
+            font-family: 'Roboto Mono', 'Consolas', 'Courier New', monospace;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--term-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        body.light-mode #matrix-bg { opacity: 0.35; }
+        header {
+            background: var(--header-bg);
+            padding: 50px 20px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--accent-blue);
+            box-shadow: 0 0 20px var(--shadow-color);
+            position: relative;
+            z-index: 1;
+        }
+    header h1 { margin: 0; font-size: clamp(1.5em, 5vw + 1rem, 2.8em); color: var(--accent-blue); text-shadow: 0 0 8px rgba(114, 159, 207, 0.4); letter-spacing: 2px; max-width: 100%; }
+        body.light-mode header h1 { text-shadow: none; }
+        header p { margin: 10px 0 0; font-size: 1.2em; color: var(--accent-green); }
+        .container { max-width: 850px; margin: auto; padding: 40px 20px; position: relative; z-index: 1; }
+        section {
+            background: var(--section-bg);
+            backdrop-filter: blur(4px);
+            padding: 35px 30px 30px;
+            margin-bottom: 35px;
+            border-radius: 6px;
+            border: 1px solid var(--term-border);
+            box-shadow: var(--section-shadow);
+            position: relative;
+        overflow-x: auto;
+        }
+        section::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff5f56;
+            box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+        }
+        /* Clear Z-index separation to prevent popovers from being overlapped by Sections below */
+        #about { z-index: 11; }
+        #pipeline { z-index: 10; }
+        #skills { z-index: 9; }
+        #certifications { z-index: 8; }
+        #languages { z-index: 7; }
+        #contact { z-index: 6; }
+        h2 { color: var(--accent-blue); border-bottom: 1px dashed var(--term-border); padding-bottom: 15px; margin-top: 5px; font-size: 1.4em; font-weight: normal; }
+        h2::before { content: "[vi@centos ~]$ "; color: var(--accent-green); font-weight: bold; }
+        .item { margin-bottom: 25px; }
+        .item:last-child { margin-bottom: 0; }
+        .item h3 { margin: 0 0 8px 0; color: var(--accent-orange); font-size: 1.15em; font-weight: normal; }
+        .item h3::before { content: "▸ "; color: var(--accent-cyan); }
+        .date { font-size: 0.85em; color: #babdb6; margin-bottom: 12px; display: inline-block; background: var(--bg-color); padding: 4px 10px; border-radius: 3px; border: 1px solid var(--term-border); }
+        ul { list-style-type: none; padding-left: 0; }
+        ul li { margin-bottom: 8px; }
+        ul li::before { content: "» "; color: var(--accent-cyan); font-weight: bold; margin-right: 5px; }
+        .skills-list { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+        .skills-list li {
+            background: var(--bg-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid var(--term-border);
+            transition: all 0.3s ease;
+        }
+        .skills-list li::before { content: ""; margin: 0; }
+        .skills-list li:hover { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(137, 221, 255, 0.3); color: #fff; transform: translateY(-2px); }
+        .skills-list li:nth-child(1) { border-color: #ff9900; color: #ff9900; } /* AWS */
+        .skills-list li:nth-child(2) { border-color: #326ce5; color: #326ce5; } /* K8s */
+        .skills-list li:nth-child(3) { border-color: #fc6d26; color: #fc6d26; } /* GitLab */
+        .skills-list li:nth-child(4) { border-color: #844fba; color: #844fba; } /* Terraform */
+        .skills-list li:nth-child(5) { border-color: #00bc8c; color: #00bc8c; } /* Linux */
+        .skills-list li:nth-child(6) { border-color: #fca311; color: #fca311; } /* Bash/Python */
+        
+        /* GitLab Horizontal Pipeline Styles */
+    .gitlab-pipeline { display: flex; align-items: flex-start; gap: 40px; padding: 20px 0; position: relative; overflow-x: auto; }
+        .gl-stage { display: flex; flex-direction: column; align-items: center; min-width: 150px; position: relative; z-index: 1; gap: 15px; }
+        .gl-stage:hover { z-index: 10; }
+        .gl-stage-name { font-size: 0.85em; color: var(--accent-blue); background-color: var(--term-bg); border: 1px dashed var(--accent-blue); padding: 4px 16px; border-radius: 15px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 2; position: relative; }
+        .gl-job { background: var(--term-bg); border: 1px solid var(--term-border); border-radius: 20px; padding: 6px 15px; color: var(--text-main); font-size: 0.9em; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; z-index: 1; }
+        .gl-job:hover { border-color: var(--text-main); box-shadow: 0 4px 8px rgba(0,0,0,0.4); z-index: 10; }
+        .gl-job.active { border-color: var(--text-main); box-shadow: 0 4px 8px rgba(0,0,0,0.4); z-index: 20; }
+        .gl-job.passed { border-color: var(--accent-green); }
+        .gl-job.passed .status-icon { color: var(--accent-green); font-weight: bold; }
+        .gl-job.running { border-color: var(--accent-cyan); animation: gl-pulse 2s infinite; }
+        .gl-job.running .status-icon { color: var(--accent-cyan); display: inline-block; animation: gl-spin 1.5s linear infinite; font-weight: bold; }
+        @keyframes gl-pulse { 0% { box-shadow: 0 0 0 0 rgba(137, 221, 255, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(137, 221, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(137, 221, 255, 0); } }
+        @keyframes gl-spin { 100% { transform: rotate(360deg); } }
+        /* Connectors */
+        .gl-stage:not(:last-child) .gl-job::after { content: ''; position: absolute; top: 50%; right: -42px; width: 41px; height: 2px; background: var(--term-border); z-index: -1; }
+        /* Popover Details */
+        .gl-popover { position: absolute; top: 0; left: 0; width: 340px; background: var(--bg-color); border: 1px solid var(--term-border); border-radius: 6px; padding: 15px; box-shadow: var(--popover-shadow); cursor: default; z-index: 9999; text-align: left; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.2s ease, margin-top 0.2s ease; margin-top: 15px; }
+        .gl-popover.gl-pop-visible { opacity: 1; visibility: visible; pointer-events: auto; margin-top: 0; }
+        .gl-popover::before { content: ''; position: absolute; top: -6px; left: var(--arrow-pos, 50%); transform: translateX(-50%) rotate(45deg); width: 10px; height: 10px; background: var(--bg-color); border-top: 1px solid var(--term-border); border-left: 1px solid var(--term-border); }
+        .job-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px dashed var(--term-border); padding-bottom: 10px; font-size: 0.9em; }
+        .job-name { color: var(--accent-orange); font-weight: bold; font-size: 1.1em; }
+        .job-stage { color: var(--accent-blue); }
+        .job-time { color: #babdb6; font-size: 0.9em; }
+        .job-logs { margin: 0; padding-left: 0; list-style: none; }
+        .job-logs li { margin-bottom: 6px; font-size: 0.85em; color: var(--text-main); line-height: 1.4; }
+        .job-logs li::before { content: "> "; color: var(--accent-green); font-weight: bold; margin-right: 5px; }
+        a { color: var(--accent-cyan); text-decoration: none; border-bottom: 1px dotted var(--accent-cyan); transition: 0.2s;}
+        a:hover { color: #fff; border-bottom: 1px solid #fff; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+        body.light-mode a:hover { color: var(--accent-blue); text-shadow: none; border-bottom: 1px solid var(--accent-blue); }
+        footer { text-align: center; padding: 30px; color: var(--term-border); font-size: 0.9em; position: relative; z-index: 1; }
+        
+        /* Download Button */
+        .btn-download {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 24px;
+            background-color: var(--term-bg);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-download:hover { background-color: var(--accent-green); color: var(--term-bg); box-shadow: 0 0 15px rgba(138, 226, 52, 0.4); border-bottom: 1px solid var(--term-bg); }
+        .btn-download::before { content: "$ wget "; color: var(--text-main); transition: 0.3s; }
+        .btn-download:hover::before { color: var(--term-bg); }
+
+        /* Typing Cursor */
+        .typing-cursor::after {
+            content: '█';
+            display: inline-block;
+            margin-left: 5px;
+            animation: blink 1s step-end infinite;
+            color: var(--accent-green);
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Top Controls */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        .btn-ctrl {
+            background: var(--term-bg);
+            color: var(--accent-orange);
+            border: 1px solid var(--accent-orange);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-ctrl:hover { background: var(--accent-orange); color: var(--term-bg); box-shadow: 0 0 10px rgba(252, 233, 79, 0.4); }
+
+        /* Scroll to Top Button */
+        .btn-scroll-top {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 99;
+            font-size: 1.2em;
+            border: none;
+            outline: none;
+            background-color: var(--accent-orange);
+            color: var(--term-bg);
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+        .btn-scroll-top:hover { background-color: var(--accent-green); box-shadow: 0 0 15px rgba(138, 226, 52, 0.6); }
+
+        /* Contact Form */
+        .contact-form {
+            margin-top: 30px;
+            border-top: 1px dashed var(--term-border);
+            padding-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group label {
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--term-border);
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-family: inherit;
+            transition: 0.3s;
+            font-size: 0.95em;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 8px rgba(52, 226, 226, 0.3);
+        }
+        .btn-submit {
+            align-self: flex-start;
+            margin-top: 5px;
+        }
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .form-status {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+            font-size: 0.9em;
+            word-break: break-word;
+        }
+        .status-success { border: 1px solid var(--accent-green); color: var(--accent-green); background: rgba(138, 226, 52, 0.1); }
+        .status-error { border: 1px solid #ff5f56; color: #ff5f56; background: rgba(255, 95, 86, 0.1); }
+    </style>
+</head>
+<body>
+    <script>
+        // Áp dụng theme và ngôn ngữ ngay lập tức trước khi render để tránh nháy (Flicker)
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                document.body.classList.add('light-mode');
+            }
+            const savedLang = localStorage.getItem('lang');
+            if (savedLang === 'vi' || (!savedLang && navigator.language.startsWith('vi'))) {
+                document.body.classList.add('lang-vi');
+            }
+        })();
+    </script>
+    <canvas id="matrix-bg"></canvas>
+    <div class="top-controls">
+        <button id="theme-toggle" class="btn-ctrl">☀️ Light</button>
+        <button id="lang-toggle" class="btn-ctrl">VI</button>
+    </div>
+    <header>
+        <div class="container">
+            <h1 id="header-title" class="typing-cursor">> </h1>
+            <p>#!/bin/bash<br>echo "<span class="lang-en-only">DevOps Engineer</span><span class="lang-vi-only">Kỹ sư DevOps</span>"</p>
+            <a href="Truong Quoc Vi.pdf" download="Truong Quoc Vi.pdf" class="btn-download">resume.pdf</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <section id="about">
+            <h2>whoami</h2>
+            <p id="whoami-text" class="typing-cursor">
+                <span class="lang-en-only">Experienced DevOps Engineer with 5+ years in cloud infrastructure, system administration, and automation. Proficient in Microsoft Azure (AZ-104 certified) and AWS, with hands-on experience in Kubernetes (OKD), CI/CD automation (GitLab, Docker), and configuration management (Chef). Strong knowledge of cloud security, scalable architecture, and infrastructure as code. Passionate about collaborating in Agile teams, optimizing DevOps pipelines, and ensuring high-availability cloud solutions.</span>
+                <span class="lang-vi-only">Kỹ sư DevOps với hơn 5 năm kinh nghiệm trong mảng hạ tầng đám mây, quản trị hệ thống và tự động hóa. Thành thạo Microsoft Azure (chứng chỉ AZ-104) và AWS, có kinh nghiệm thực chiến với Kubernetes (OKD), tự động hóa CI/CD (GitLab, Docker) và quản lý cấu hình (Chef). Kiến thức vững chắc về bảo mật đám mây, kiến trúc mở rộng và Infrastructure as Code. Đam mê làm việc trong môi trường Agile, tối ưu hóa quy trình DevOps và đảm bảo tính sẵn sàng cao cho hệ thống.</span>
+            </p>
+        </section>
+
+        <section id="pipeline">
+            <h2>gitlab-runner view-pipeline --project "My_Journey"</h2>
+            <div class="gitlab-pipeline">
+                <div class="gl-stage">
+                    <div class="gl-stage-name">prepare</div>
+                    <div class="gl-job passed">
+                        <span class="status-icon">✔</span>
+                        <span class="job-label">fpt_university</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">FPT University</span>
+                                <span class="job-stage"><span class="lang-en-only">Information Assurance (Bachelor)</span><span class="lang-vi-only">An toàn thông tin (Cử nhân)</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Oct 2015 - Jun 2019]</span><span class="lang-vi-only">[Tháng 10/2015 - Tháng 6/2019]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Awarded 50% Merit Scholarship (2015-2019).</li>
+                                <li class="lang-vi-only">Đạt học bổng 50% (2015-2019).</li>
+                                <li class="lang-en-only">Graduated with GPA: 8.22/10.</li>
+                                <li class="lang-vi-only">Tốt nghiệp với GPA: 8.22/10.</li>
+                                <li class="lang-en-only">Outstanding Graduation Thesis Score: 9.3/10.</li>
+                                <li class="lang-vi-only">Điểm đồ án tốt nghiệp xuất sắc: 9.3/10.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="gl-stage">
+                    <div class="gl-stage-name">intern</div>
+                    <div class="gl-job passed">
+                        <span class="status-icon">✔</span>
+                        <span class="job-label">fpt_info_system</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">FPT Information System</span>
+                                <span class="job-stage"><span class="lang-en-only">Intern</span><span class="lang-vi-only">Thực tập sinh</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Jan 2018 - Apr 2018]</span><span class="lang-vi-only">[Tháng 1/2018 - Tháng 4/2018]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Gained hands-on experience in configuring and troubleshooting enterprise routers, switches, and firewalls.</li>
+                                <li class="lang-vi-only">Thực hành cấu hình và xử lý sự cố thiết bị mạng (router, switch, firewall) doanh nghiệp.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="gl-stage">
+                    <div class="gl-stage-name">work</div>
+                    <div class="gl-job passed">
+                        <span class="status-icon">✔</span>
+                        <span class="job-label">vietnam_network</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">Vietnam Network Co., Ltd</span>
+                                <span class="job-stage"><span class="lang-en-only">System Administrator</span><span class="lang-vi-only">Quản trị hệ thống</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Jun 2017 - Jun 2019]</span><span class="lang-vi-only">[Tháng 6/2017 - Tháng 6/2019]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Architected and deployed enterprise networking and Wi-Fi marketing systems.</li>
+                                <li class="lang-vi-only">Thiết kế và triển khai hệ thống mạng doanh nghiệp và Wi-Fi marketing.</li>
+                                <li class="lang-en-only">Administered server infrastructures and developed router cloud management platforms.</li>
+                                <li class="lang-vi-only">Quản trị hạ tầng máy chủ và phát triển nền tảng quản lý cloud cho router.</li>
+                                <li class="lang-en-only">Successfully delivered a large-scale free Wi-Fi marketing system for VNPT Tien Giang.</li>
+                                <li class="lang-vi-only">Triển khai thành công hệ thống Wi-Fi miễn phí quy mô lớn cho VNPT Tiền Giang.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="gl-job passed">
+                        <span class="status-icon">✔</span>
+                        <span class="job-label">pa_vietnam</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">P.A Vietnam Co., Ltd</span>
+                                <span class="job-stage"><span class="lang-en-only">System Administrator</span><span class="lang-vi-only">Quản trị hệ thống</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Jul 2019 - Aug 2019]</span><span class="lang-vi-only">[Tháng 7/2019 - Tháng 8/2019]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Provided comprehensive technical support for servers, VPS, hosting, and domain services.</li>
+                                <li class="lang-vi-only">Hỗ trợ kỹ thuật toàn diện cho dịch vụ máy chủ, VPS, hosting và tên miền.</li>
+                                <li class="lang-en-only">Administered Windows and Linux servers utilizing Plesk, cPanel, and DirectAdmin.</li>
+                                <li class="lang-vi-only">Quản trị hệ thống Windows và Linux sử dụng Plesk, cPanel và DirectAdmin.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="gl-job passed">
+                        <span class="status-icon">✔</span>
+                        <span class="job-label">linkbynet</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">Linkbynet Co., Ltd</span>
+                                <span class="job-stage"><span class="lang-en-only">System Administrator</span><span class="lang-vi-only">Quản trị hệ thống</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Aug 2019 - Aug 2021]</span><span class="lang-vi-only">[Tháng 8/2019 - Tháng 8/2021]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Delivered 24/7 operational support and rapid incident response for enterprise systems.</li>
+                                <li class="lang-vi-only">Vận hành và hỗ trợ xử lý sự cố 24/7 cho các hệ thống doanh nghiệp lớn.</li>
+                                <li class="lang-en-only">Collaborated with specialized teams to resolve complex technical issues for high-profile clients.</li>
+                                <li class="lang-vi-only">Phối hợp cùng chuyên gia giải quyết vấn đề kỹ thuật phức tạp cho khách hàng (Chanel, Sodexo...).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="gl-job running">
+                        <span class="status-icon">↻</span>
+                        <span class="job-label">accenture</span>
+                        <div class="gl-popover">
+                            <div class="job-header">
+                                <span class="job-name">Accenture Vietnam</span>
+                                <span class="job-stage"><span class="lang-en-only">Custom Software Engineer Sr Analyst</span><span class="lang-vi-only">Kỹ sư Phần mềm Cao cấp</span></span>
+                                <span class="job-time"><span class="lang-en-only">[Aug 2021 - Present]</span><span class="lang-vi-only">[Tháng 8/2021 - Hiện tại]</span></span>
+                            </div>
+                            <ul class="job-logs">
+                                <li class="lang-en-only">Engineered and maintained internal tools utilizing MySQL, PHP, Python, and Bash scripting.</li>
+                                <li class="lang-vi-only">Lập trình và bảo trì các công cụ nội bộ sử dụng MySQL, PHP, Python và Bash script.</li>
+                                <li class="lang-en-only">Architected and implemented robust GitLab CI/CD pipelines to automate microservices deployment.</li>
+                                <li class="lang-vi-only">Thiết kế và vận hành các luồng GitLab CI/CD tự động hóa quá trình triển khai microservices.</li>
+                                <li class="lang-en-only">Managed infrastructure orchestration using OKD (Kubernetes) and configuration management via Chef.</li>
+                                <li class="lang-vi-only">Quản trị điều phối hạ tầng bằng OKD (Kubernetes) và quản lý cấu hình qua Chef.</li>
+                                <li class="lang-en-only">Provisioned and secured cloud resources on Azure DevTest Labs and AWS.</li>
+                                <li class="lang-vi-only">Cấp phát và bảo mật tài nguyên đám mây trên Azure DevTest Labs và AWS.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h2>kubectl get skills</h2>
+            <ul class="skills-list">
+                <li>Microsoft Azure & AWS</li>
+                <li>Kubernetes (OKD, AKS) & Docker</li>
+                <li>GitLab CI/CD</li>
+                <li>Terraform & Chef</li>
+                <li>Linux & Windows Server Admin</li>
+                <li>Bash, Python, PowerShell</li>
+                <li><span class="lang-en-only">Networking & Security</span><span class="lang-vi-only">Mạng & Bảo mật</span></li>
+            </ul>
+        </section>
+
+        <section id="certifications">
+            <h2>ls -l /usr/local/certs/</h2>
+            <ul>
+                <li><strong>AZ-104: Microsoft Azure Administrator</strong> (Microsoft) <span class="job-time"><span class="lang-en-only">- Jan 2021</span><span class="lang-vi-only">- Tháng 1/2021</span></span></li>
+                <li><strong>CCNP Switching Certification</strong> (VnPro) <span class="job-time"><span class="lang-en-only">- Dec 2018</span><span class="lang-vi-only">- Tháng 12/2018</span></span></li>
+                <li><strong>CCNA Routing & Switching Certification</strong> (VnPro) <span class="job-time"><span class="lang-en-only">- Jun 2018</span><span class="lang-vi-only">- Tháng 6/2018</span></span></li>
+                <li><strong>IELTS 6.0</strong> (IDP Vietnam) <span class="job-time"><span class="lang-en-only">- Aug 2011</span><span class="lang-vi-only">- Tháng 8/2011</span></span></li>
+            </ul>
+        </section>
+
+        <section id="languages">
+            <h2>locale</h2>
+            <ul>
+                <li><strong><span class="lang-en-only">Vietnamese:</span><span class="lang-vi-only">Tiếng Việt:</span></strong> <span class="lang-en-only">Native Speaker</span><span class="lang-vi-only">Người bản xứ</span></li>
+                <li><strong><span class="lang-en-only">English:</span><span class="lang-vi-only">Tiếng Anh:</span></strong> <span class="lang-en-only">Full Professional Proficiency</span><span class="lang-vi-only">Thành thạo cấp độ chuyên nghiệp</span>
+                    <ul style="margin-top: 5px; margin-left: 20px; font-size: 0.95em; color: var(--text-main);">
+                        <li class="lang-en-only"><strong>Verbal Communication:</strong> Effectively collaborating with international clients and cross-functional teams.</li>
+                        <li class="lang-vi-only"><strong>Giao tiếp:</strong> Phối hợp làm việc hiệu quả với khách hàng quốc tế và các nhóm liên chức năng.</li>
+                        <li class="lang-en-only"><strong>Written Communication:</strong> Composing comprehensive technical documentation and conducting professional correspondence.</li>
+                        <li class="lang-vi-only"><strong>Viết:</strong> Xây dựng tài liệu kỹ thuật chi tiết và trao đổi công việc chuyên nghiệp qua email.</li>
+                        <li class="lang-en-only"><strong>Technical Comprehension:</strong> Seamlessly researching and assimilating emerging technologies through English literature.</li>
+                        <li class="lang-vi-only"><strong>Đọc hiểu tài liệu:</strong> Dễ dàng nghiên cứu và nắm bắt các công nghệ mới thông qua tài liệu tiếng Anh.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="contact">
+            <h2>ping -c 4 truongquocvi</h2>
+            <p>✉️ Email: <a href="mailto:truongquocvi@gmail.com">truongquocvi@gmail.com</a></p>
+            <p>📞 <span class="lang-en-only">Phone:</span><span class="lang-vi-only">Điện thoại:</span> <a href="tel:0792188060">0792188060</a></p>
+            <p>🔗 Website: <a href="https://truongquocvi.com" target="_blank">truongquocvi.com</a></p>
+            <p>📍 <span class="lang-en-only">Location:</span><span class="lang-vi-only">Địa chỉ:</span> Ho Chi Minh City, Vietnam</p>
+
+            <form id="contactForm" class="contact-form">
+                <div class="form-group">
+                    <label for="name">> <span class="lang-en-only">Name:</span><span class="lang-vi-only">Họ tên:</span></label>
+                    <input type="text" id="name" name="name" required placeholder="...">
+                </div>
+                <div class="form-group">
+                    <label for="email">> <span class="lang-en-only">Email:</span><span class="lang-vi-only">Email:</span></label>
+                    <input type="email" id="email" name="email" required placeholder="...">
+                </div>
+                <div class="form-group">
+                    <label for="message">> <span class="lang-en-only">Message:</span><span class="lang-vi-only">Tin nhắn:</span></label>
+                    <textarea id="message" name="message" rows="4" required placeholder="..."></textarea>
+                </div>
+                <button type="submit" id="submitBtn" class="btn-ctrl btn-submit">./send_message.sh</button>
+                <div id="formStatus" class="form-status"></div>
+            </form>
+        </section>
+    </div>
+
+    <button id="scrollTopBtn" class="btn-scroll-top" title="Go to top">↑</button>
+
+    <footer>
+        <p>&copy; <span id="current-year"></span> Truong Quoc Vi. sys.exit(0)</p>
+    </footer>
+
+    <script>
+        // Matrix Background Effect
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?/`~';
+        const letters = chars.split('');
+        const fontSize = 14;
+        let columns = canvas.width / fontSize;
+        let drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            const isLightMode = document.body.classList.contains('light-mode');
+            
+            ctx.fillStyle = isLightMode ? 'rgba(240, 242, 245, 0.15)' : 'rgba(46, 52, 54, 0.15)'; // Background blending
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                // Vẽ phần thân đuôi (Ghi đè màu xanh lên vị trí của vệt sáng ở khung hình trước)
+                ctx.fillStyle = isLightMode ? '#4e9a06' : '#8ae234';
+                ctx.fillText(letters[Math.floor(Math.random() * letters.length)], i * fontSize, (drops[i] - 1) * fontSize);
+                
+                // Vẽ phần đầu (vệt sáng nổi bật: Trắng ở chế độ Tối, Đen ở chế độ Sáng)
+                ctx.fillStyle = isLightMode ? '#000000' : '#ffffff';
+                ctx.fillText(letters[Math.floor(Math.random() * letters.length)], i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        window.addEventListener('resize', () => { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+            columns = canvas.width / fontSize;
+            while (drops.length < columns) drops.push(Math.random() * canvas.height / fontSize);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Header Typing Effect
+            const titleEl = document.getElementById('header-title');
+            if (titleEl) {
+                const textToType = "Truong_Quoc_Vi";
+                let typeIdx = 0;
+                const typeHeader = () => {
+                    if (typeIdx < textToType.length) {
+                        const char = textToType.charAt(typeIdx);
+                        titleEl.innerHTML += char === '_' ? '_<wbr>' : char;
+                        typeIdx++;
+                        setTimeout(typeHeader, 120);
+                    }
+                };
+                setTimeout(typeHeader, 300);
+            }
+            
+            // Theme Toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            
+            let isLightMode = savedTheme === 'light' || (!savedTheme && systemPrefersLight);
+            
+            const updateTheme = () => {
+                if (isLightMode) {
+                    document.body.classList.add('light-mode');
+                    themeBtn.textContent = '🌙 Dark';
+                } else {
+                    document.body.classList.remove('light-mode');
+                    themeBtn.textContent = '☀️ Light';
+                }
+            };
+            updateTheme(); // Apply immediately on page load
+
+            themeBtn.addEventListener('click', () => {
+                isLightMode = !isLightMode;
+                localStorage.setItem('theme', isLightMode ? 'light' : 'dark');
+                updateTheme();
+            });
+
+            // Language Toggle
+            const langBtn = document.getElementById('lang-toggle');
+            const savedLang = localStorage.getItem('lang');
+            const systemLangIsVi = navigator.language.startsWith('vi');
+            
+            let isViMode = savedLang === 'vi' || (!savedLang && systemLangIsVi);
+            
+            const updateLang = () => {
+                if (isViMode) {
+                    document.body.classList.add('lang-vi');
+                    langBtn.textContent = 'EN';
+                } else {
+                    document.body.classList.remove('lang-vi');
+                    langBtn.textContent = 'VI';
+                }
+            };
+            updateLang(); // Apply immediately on page load
+
+            langBtn.addEventListener('click', () => {
+                isViMode = !isViMode;
+                localStorage.setItem('lang', isViMode ? 'vi' : 'en');
+                updateLang();
+            });
+
+            // --- POPOVER CLIPPING FIX (PORTALING) ---
+            const jobs = document.querySelectorAll('.gl-job');
+            let hideTimeout;
+
+            // Bốc các popover thả ra ngoài document.body để không bị chặn bởi section
+            jobs.forEach(job => {
+                const popover = job.querySelector('.gl-popover');
+                if (popover) {
+                    document.body.appendChild(popover);
+                    job._popover = popover; // Lưu reference vào job
+                }
+            });
+
+            function adjustPopoverPosition(job) {
+                const popover = job._popover;
+                if (!popover) return;
+                
+                const rect = job.getBoundingClientRect();
+                
+                // Căn chuẩn tọa độ tuyệt đối (tính cả độ cuộn dọc và ngang của page)
+                let top = rect.bottom + window.scrollY + 12;
+                popover.style.top = `${top}px`;
+                
+                // Tính toán trước tọa độ dự kiến thay vì set style (tránh lỗi kéo giãn ngầm trên mobile)
+                const popWidth = popover.offsetWidth || 340;
+                const screenWidth = document.documentElement.clientWidth || window.innerWidth;
+                const jobCenter = rect.left + (rect.width / 2);
+                
+                let calculatedLeft = jobCenter - (popWidth / 2);
+                const padding = 10; // Khoảng cách an toàn tới 2 mép màn hình
+
+                // Ép popover luôn nằm lọt lòng trong màn hình
+                if (calculatedLeft < padding) {
+                    calculatedLeft = padding; // Nếu tràn trái, ghim cách lề trái 10px
+                } else if (calculatedLeft + popWidth > screenWidth - padding) {
+                    calculatedLeft = screenWidth - popWidth - padding; // Nếu tràn phải, ghim cách lề phải 10px
+                }
+
+                popover.style.left = `${calculatedLeft + window.scrollX}px`;
+                popover.style.transform = 'none';
+
+                // Cập nhật vị trí mũi tên (arrow) luôn trỏ vào tâm của Job
+                const popRect = popover.getBoundingClientRect();
+                let arrowPos = rect.left + (rect.width / 2) - popRect.left;
+                arrowPos = Math.max(15, Math.min(arrowPos, popRect.width - 15));
+                popover.style.setProperty('--arrow-pos', `${arrowPos}px`);
+            }
+
+            function showPopover(job) {
+                clearTimeout(hideTimeout);
+                jobs.forEach(j => {
+                    if (j !== job && j._popover) {
+                        j._popover.classList.remove('gl-pop-visible');
+                        j.classList.remove('active');
+                    }
+                });
+                if (job._popover) {
+                    job._popover.classList.add('gl-pop-visible');
+                    adjustPopoverPosition(job);
+                }
+            }
+
+            function hidePopover(job) {
+                if (!job.classList.contains('active') && job._popover) {
+                    job._popover.classList.remove('gl-pop-visible');
+                }
+            }
+
+            jobs.forEach(job => {
+                job.addEventListener('mouseenter', () => showPopover(job));
+                job.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => hidePopover(job), 100); });
+                
+                if (job._popover) {
+                    job._popover.addEventListener('mouseenter', () => clearTimeout(hideTimeout)); // Prevent hiding when hovering over the popover
+                    job._popover.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => hidePopover(job), 100); });
+                    job._popover.addEventListener('click', (e) => e.stopPropagation());
+                }
+
+                job.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isActive = job.classList.contains('active');
+                    jobs.forEach(j => j.classList.remove('active'));
+                    if (!isActive) {
+                        job.classList.add('active');
+                        showPopover(job);
+                    } else if (job._popover) {
+                        job._popover.classList.remove('gl-pop-visible');
+                    }
+                });
+            });
+
+            document.addEventListener('click', () => {
+                jobs.forEach(j => {
+                    j.classList.remove('active');
+                    if (j._popover) j._popover.classList.remove('gl-pop-visible');
+                });
+            });
+
+            // Update popover position even when scrolling section or page
+            const updatePositions = () => {
+                jobs.forEach(job => {
+                    if (job._popover && job._popover.classList.contains('gl-pop-visible')) adjustPopoverPosition(job);
+                });
+            };
+            window.addEventListener('scroll', updatePositions, true); // true: capture all child scroll events
+            window.addEventListener('resize', updatePositions);
+
+            // Form Submission Logic
+            const contactForm = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const formStatus = document.getElementById('formStatus');
+
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Set UI to loading state
+                submitBtn.textContent = './send_message.sh --running...';
+                submitBtn.disabled = true;
+                formStatus.style.display = 'none';
+                formStatus.className = 'form-status';
+
+                const formData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    message: document.getElementById('message').value
+                };
+
+                const isVi = document.body.classList.contains('lang-vi');
+
+                try {
+                    // URL pointing to the Google Apps Script Web App URL
+                    // const gas_url = 'https://script.google.com/macros/s/AKfycbz2Lq5IJnBe3GpBWcgvD85MdWH0Ckr85hlOgK5W61xGUmJo8tKjjHfP8k0LdFyAvvgf/exec';
+                    const gas_url = 'https://script.google.com/macros/s/AKfycbzhmY8PLvtaXvfKBA4cYnMZS-PuR2aM2to8h-NLeklC6yN-3DBGBs3OglhPzOWrntQ3DQ/exec';
+                    const response = await fetch(gas_url, {
+                        method: 'POST',
+                        body: JSON.stringify(formData)
+                        // Remove Content-Type header to avoid Google's CORS preflight error
+                    });
+
+                    if (!response.ok) throw new Error('Server response was not ok');
+                    const result = await response.json();
+
+                    formStatus.textContent = isVi ? '✔ Gửi tin nhắn thành công!' : '✔ Message sent successfully!';
+                    formStatus.classList.add('status-success');
+                    contactForm.reset();
+                } catch (error) {
+                    formStatus.textContent = isVi ? '✖ Gửi thất bại. Vui lòng liên hệ trực tiếp qua email hoặc điện thoại.' : '✖ Failed to send. Please contact me directly via email or phone.';
+                    formStatus.classList.add('status-error');
+                } finally {
+                    submitBtn.textContent = './send_message.sh';
+                    submitBtn.disabled = false;
+                    formStatus.style.display = 'block';
+                }
+            });
+
+            // Scroll to Top Logic
+            const scrollTopBtn = document.getElementById("scrollTopBtn");
+            window.addEventListener('scroll', () => {
+                if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                    scrollTopBtn.style.display = "block";
+                } else {
+                    scrollTopBtn.style.display = "none";
+                }
+            });
+            scrollTopBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Automatically get the current year for the footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>
