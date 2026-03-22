@@ -105,6 +105,264 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLang();
     });
 
+    // --- WINDOW CONTROLS LOGIC ---
+    const overlay = document.createElement('div');
+    overlay.className = 'fullscreen-overlay';
+    document.body.appendChild(overlay);
+
+    // Initialize OS Dock (Restore Windows)
+    const dock = document.createElement('div');
+    dock.className = 'os-dock';
+    document.body.appendChild(dock);
+
+    // Drag & Resize States
+    let activeDragSection = null;
+    let dragStartX = 0, dragStartY = 0;
+    let isResizing = false;
+    let currentResizer = null;
+    let startWidth = 0, startHeight = 0;
+    let startLeft = 0, startTop = 0;
+
+    // Convert sections to absolute positioning for true desktop feel
+    setTimeout(() => {
+        const winContainer = document.querySelector('.container:nth-of-type(2)');
+        if (winContainer) {
+            const sectionsArr = Array.from(winContainer.querySelectorAll('section'));
+            const rects = sectionsArr.map(sec => ({
+                top: sec.offsetTop,
+                left: sec.offsetLeft,
+                width: sec.offsetWidth,
+                height: sec.offsetHeight
+            }));
+
+            sectionsArr.forEach((sec, index) => {
+                sec.style.position = 'absolute';
+                sec.style.top = rects[index].top + 'px';
+                sec.style.left = rects[index].left + 'px';
+                sec.style.width = rects[index].width + 'px';
+                sec.style.height = rects[index].height + 'px';
+                sec.style.margin = '0'; // Remove margin since it's absolute
+            });
+            updateContainerHeight();
+        }
+    }, 100);
+
+    // Update container height based on the lowest window to manage footer gap
+    function updateContainerHeight() {
+        const winContainer = document.querySelector('.container:nth-of-type(2)');
+        if (!winContainer) return;
+        let maxH = 0;
+        document.querySelectorAll('section').forEach(sec => {
+            if (sec.style.display !== 'none' && !sec.classList.contains('section-fullscreen')) {
+                const bottom = sec.offsetTop + (sec.classList.contains('section-minimized') ? 36 : sec.offsetHeight);
+                if (bottom > maxH) maxH = bottom;
+            }
+        });
+        winContainer.style.height = (maxH + 50) + 'px';
+    }
+
+    const handleDragMove = (e) => {
+        if (!activeDragSection) return;
+        if (e.type === 'touchmove') e.preventDefault(); // Prevent screen scrolling when dragging on mobile
+
+        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        
+        if (isResizing) {
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newLeft = startLeft;
+            let newTop = startTop;
+
+            if (currentResizer.includes('r')) newWidth = startWidth + dx;
+            if (currentResizer.includes('b')) newHeight = startHeight + dy;
+            if (currentResizer.includes('l')) { newWidth = startWidth - dx; newLeft = startLeft + dx; }
+            if (currentResizer.includes('t')) { newHeight = startHeight - dy; newTop = startTop + dy; }
+
+            // Enforce minimum constraints
+            if (newWidth < 250) { if (currentResizer.includes('l')) newLeft = startLeft + (startWidth - 250); newWidth = 250; }
+            if (newHeight < 100) { if (currentResizer.includes('t')) newTop = startTop + (startHeight - 100); newHeight = 100; }
+
+            activeDragSection.style.width = `${newWidth}px`;
+            activeDragSection.style.height = `${newHeight}px`;
+            activeDragSection.style.left = `${newLeft}px`;
+            activeDragSection.style.top = `${newTop}px`;
+        } else {
+            activeDragSection.style.left = `${startLeft + dx}px`;
+            activeDragSection.style.top = `${startTop + dy}px`;
+        }
+        
+        updateContainerHeight();
+        if (typeof updatePositions === 'function') updatePositions(); // Sync popovers in real-time
+    };
+
+    const handleDragEnd = () => {
+        if (activeDragSection) {
+            activeDragSection = null;
+            isResizing = false;
+            currentResizer = null;
+            document.body.style.userSelect = '';
+        }
+    };
+
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchend', handleDragEnd);
+
+    document.querySelectorAll('section').forEach(section => {
+        // 1. Create Title Bar dynamically
+        const titleBar = document.createElement('div');
+        titleBar.className = 'window-titlebar';
+        titleBar.innerHTML = `
+            <span class="window-title-text">vi@centos:~</span>
+            <div class="window-controls">
+                <button class="win-btn minimize" title="Minimize">_</button>
+                <button class="win-btn maximize" title="Maximize">□</button>
+                <button class="win-btn close" title="Close">✕</button>
+            </div>
+        `;
+        
+        // Bring window to front on click
+        const bringToFront = () => {
+            document.querySelectorAll('section').forEach(s => s.style.zIndex = '');
+            section.style.zIndex = '998'; 
+        };
+        section.addEventListener('mousedown', bringToFront);
+        section.addEventListener('touchstart', bringToFront, { passive: true });
+
+        // Drag start logic
+        const handleDragStart = (e) => {
+            if (e.target.closest('.window-controls')) return; // Ignore if clicking window controls
+            if (section.classList.contains('section-fullscreen')) return; // Disable dragging in fullscreen
+
+            activeDragSection = section;
+            dragStartX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            dragStartY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+            startLeft = section.offsetLeft;
+            startTop = section.offsetTop;
+
+            bringToFront();
+            document.body.style.userSelect = 'none'; // Prevent text selection during drag
+        };
+        titleBar.addEventListener('mousedown', handleDragStart);
+        titleBar.addEventListener('touchstart', handleDragStart, { passive: true });
+
+        // 2. Wrap existing content into a scrollable container
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'section-content';
+        while (section.firstChild) {
+            contentWrapper.appendChild(section.firstChild);
+        }
+
+        // 3. Append parts back to section
+        section.appendChild(titleBar);
+        section.appendChild(contentWrapper);
+
+        // 4. Button Events
+        const btnMin = titleBar.querySelector('.minimize');
+        const btnMax = titleBar.querySelector('.maximize');
+        const btnClose = titleBar.querySelector('.close');
+
+        btnMin.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (section.classList.contains('section-fullscreen')) {
+                section.classList.remove('section-fullscreen');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            section.classList.toggle('section-minimized');
+            updateContainerHeight();
+        });
+
+        btnMax.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (section.classList.contains('section-minimized')) {
+                section.classList.remove('section-minimized');
+            }
+            section.classList.toggle('section-fullscreen');
+            updateContainerHeight();
+            if (section.classList.contains('section-fullscreen')) {
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        btnClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            section.style.display = 'none';
+            if (section.classList.contains('section-fullscreen')) {
+                section.classList.remove('section-fullscreen');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            updateContainerHeight();
+
+            // Send to Dock
+            const dockIcon = document.createElement('button');
+            dockIcon.className = 'dock-icon';
+            dockIcon.title = `Restore ${section.id || 'Window'}`;
+            dockIcon.innerHTML = `>_${section.id || 'window'}`;
+            dockIcon.onclick = () => {
+                section.style.display = 'flex'; // Restore flex display
+                bringToFront(); // Bring to front
+                dockIcon.remove();
+                updateContainerHeight();
+            };
+            dock.appendChild(dockIcon);
+        });
+        
+        // Double-click Titlebar to Toggle Fullscreen
+        titleBar.addEventListener('dblclick', () => {
+            btnMax.click();
+        });
+
+        // Add Custom Resizers
+        ['t', 'r', 'b', 'l', 'tl', 'tr', 'bl', 'br'].forEach(dir => {
+            const resizer = document.createElement('div');
+            resizer.className = `resizer resizer-${dir}`;
+            section.appendChild(resizer);
+
+            const startResize = (e) => {
+                e.stopPropagation();
+                if (section.classList.contains('section-fullscreen') || section.classList.contains('section-minimized')) return;
+                
+                isResizing = true;
+                currentResizer = dir;
+                activeDragSection = section;
+                dragStartX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                dragStartY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                
+                startWidth = section.offsetWidth;
+                startHeight = section.offsetHeight;
+                startLeft = section.offsetLeft;
+                startTop = section.offsetTop;
+                
+                bringToFront();
+                document.body.style.userSelect = 'none'; // Prevent text selection
+            };
+
+            resizer.addEventListener('mousedown', startResize);
+            resizer.addEventListener('touchstart', startResize, { passive: true });
+        });
+    });
+
+    // Click overlay to close fullscreen windows
+    overlay.addEventListener('click', () => {
+        document.querySelectorAll('section.section-fullscreen').forEach(sec => {
+            sec.classList.remove('section-fullscreen');
+        });
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+
     // --- POPOVER CLIPPING FIX (PORTALING) ---
     const jobs = document.querySelectorAll('.gl-job');
     let hideTimeout;
@@ -203,12 +461,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Update popover position even when scrolling section or page
-    const updatePositions = () => {
+    // Update popover position even when scrolling section or page (Hoisted)
+    function updatePositions() {
         jobs.forEach(job => {
             if (job._popover && job._popover.classList.contains('gl-pop-visible')) adjustPopoverPosition(job);
         });
-    };
+    }
     window.addEventListener('scroll', updatePositions, true); // true: capture all child scroll events
     window.addEventListener('resize', updatePositions);
 
